@@ -1,3 +1,11 @@
+/**
+ * SimplePBR Material showcase
+ *
+ * by Nacho Cossio 2018
+ * www.nachocossio.com (@nacho_cossio)
+ *
+ */
+
 import estudiolumen.simplepbr.*;
 
   PBRMat mat;
@@ -6,11 +14,14 @@ import estudiolumen.simplepbr.*;
     size(1080, 1080, P3D);
     sphereDetail(20);
 
+    // Path to common data folder
     String path = sketchPath()+"/../";
-    //println(path);
+    
+    // Init SimplePBR providing path to folder with cubemap, radiance and irrandiance textures
     SimplePBR.init(this, path+"data/textures/cubemap/Zion_Sunsetpeek"); // init PBR setting processed cubemap
     SimplePBR.setExposure(1.2f); // simple exposure control
     
+      // Create PBR material from a set of textures
     mat = new PBRMat(path+"data/textures/material/Metal_Rusted_006/");
 
     noStroke();
@@ -22,21 +33,21 @@ import estudiolumen.simplepbr.*;
     pushMatrix();
     translate(width/2, height/2,0);
     rotateY(PI);
-    // additive blend to lighten up the background cubemap
+    // Additive blend to lighten the background, not really needed
     background(40);
     blendMode(ADD);
     SimplePBR.drawCubemap(g, 8000); 
     blendMode(BLEND);
     popMatrix();
     
-    
-    fill(255);
+	// Three lights set up    
     directionalLight(200, 200, 200, 0.8f, 0.8f, -0.6f);
     directionalLight(255, 255, 255, 0, -0.2f, 1);
-//    pointLight(100, 100, 100, -200, 0, 200);
     directionalLight(120, 120, 120, -1f, -0.8f, -0.6f);
-//    directionalLight(255, 255, 255, 0, 0, -1);
 
+    fill(255);
+
+	// Draw spheres, gradually increasing the roughness and metallic parameters
     int numRows = 8;
     float separation = width / numRows;
     float inc = 1f / numRows;
@@ -57,5 +68,4 @@ import estudiolumen.simplepbr.*;
         popMatrix();
       }
     }
-
   }
