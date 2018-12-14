@@ -8,9 +8,7 @@ WARNING!: At the moment it has been tested on Windows with nVidia graphics. The 
 
 
 ### Installing
-Download the latest release, unzip the 'SimplePBR' folder into your Processing 'libraries' folder.
-
-### Release
+Download the latest [release from here](https://github.com/kosowski/SimplePBR/releases/download/v0.1/SimplePBR.zip) and unzip the 'SimplePBR' folder into your Processing 'libraries' folder.
 
 
 ### Getting Started
