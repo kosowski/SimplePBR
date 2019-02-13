@@ -16,14 +16,14 @@ void setup() {
   size(1080, 1080, P3D);
 
   // Path to common data folder
-  String path = sketchPath()+"/../";
+  String path = sketchPath("../data/textures/");
   
   // Init SimplePBR providing path to folder with cubemap, radiance and irrandiance textures
-  SimplePBR.init(this, path+"data/textures/cubemap/Zion_Sunsetpeek");
+  SimplePBR.init(this, path + "cubemap/Zion_Sunsetpeek");
 
   // Create PBR materials from a set of textures
-  mat = new PBRMat(path+"data/textures/material/Wood_006/");
-  mat2 = new PBRMat(path+"data/textures/material/Metal_01/");
+  mat = new PBRMat(path + "material/Wood_006/");
+  mat2 = new PBRMat(path + "material/Metal_01/");
   // Create a textureless material controlled just by metallic and roughness parameters
   mat3 = new PBRMat();
   noStroke();
