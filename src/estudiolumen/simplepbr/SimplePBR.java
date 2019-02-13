@@ -22,7 +22,7 @@ public class SimplePBR {
 	
 	private static PApplet papplet;
 	private static PShader pbrShader;
-	private static PShader pbrShaderTextureless;
+	private static PImage whiteTexture;
 	private static PImage iblbrdf;
 	private static PImage[] cubemapTextures;
 	private static int mipLevels = 7;
@@ -34,7 +34,8 @@ public class SimplePBR {
 		welcome();
 		
 		iblbrdf = thePapplet.loadImage("data/textures/integrateBrdf.png");
-
+		whiteTexture = thePapplet.loadImage("data/textures/white1x1.png");
+		
 		cubemapTextures = loadPrefilteredEnviromentMap(thePapplet, PGL.TEXTURE3+2, iblpath+"/PREM",
 				iblpath+"/irradiance", mipLevels);
 
@@ -44,32 +45,23 @@ public class SimplePBR {
 		pbrShader.set("envd", 5);
 		pbrShader.set("iblbrdf", iblbrdf);
 		pbrShader.set("exposure", exposure);
-		
-		pbrShaderTextureless = new PShader(thePapplet, "data/shaders/pbr/pbr.vert", "data/shaders/pbr/simplepbrTextureless.frag");
-
-		pbrShaderTextureless.set("mipLevels", mipLevels);
-		pbrShaderTextureless.set("envd", 5);
-		pbrShaderTextureless.set("iblbrdf", iblbrdf);
-		pbrShaderTextureless.set("exposure", exposure);
 	}
 
 	public static PApplet getPapplet() {
 		return papplet;
 	}
 
-
 	public static PShader getPbrShader() {
 		return pbrShader;
 	}
 
-	public static PShader getPbrShaderNoMaps() {
-		return pbrShaderTextureless;
+	public static PImage getWhiteTexture() {
+		return whiteTexture;
 	}
 	
 	public static void setExposure(float _exposure) {
 		exposure = _exposure;
 		pbrShader.set("exposure", exposure);
-		pbrShaderTextureless.set("exposure", exposure);
 	}
 	
 	static public PImage[] loadPrefilteredEnviromentMap(PApplet p5, int textureID, String texturesPath, String irradianceTexturePath, int minLevel){
