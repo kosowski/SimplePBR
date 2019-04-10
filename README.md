@@ -4,7 +4,7 @@ A Processing library providing physically based rendering and materials. Created
 
 WARNING!: At the moment it has been tested on Windows and Linux with nVidia graphics. The shader fails to compile on Intel integrated graphics and osX. It is available in the 'src/data/shaders/pbr' folder if you want to try to fix it.
 
-![](screenshot.gif)
+[![video](linkToVimeo.png)](https://vimeo.com/315540699)
 
 
 ### Installing
