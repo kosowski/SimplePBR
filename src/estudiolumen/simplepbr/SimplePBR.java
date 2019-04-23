@@ -18,7 +18,7 @@ import processing.opengl.PShader;
 public class SimplePBR {
 	
 	
-	public final static String VERSION = "0.1";
+	public final static String VERSION = "0.2";
 	
 	private static PApplet papplet;
 	private static PShader pbrShader;
@@ -62,6 +62,14 @@ public class SimplePBR {
 	public static void setExposure(float _exposure) {
 		exposure = _exposure;
 		pbrShader.set("exposure", exposure);
+	}
+	
+	public static void setDiffuseAttenuation(float att) {
+		pbrShader.set("diffuseIndirectAttenuate", att);
+	}
+	
+	public static void setReflectionAttenuation(float att) {
+		pbrShader.set("reflectIndirectAttenuate", att);
 	}
 	
 	static public PImage[] loadPrefilteredEnviromentMap(PApplet p5, int textureID, String texturesPath, String irradianceTexturePath, int minLevel){

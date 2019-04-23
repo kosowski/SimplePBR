@@ -27,6 +27,8 @@ uniform vec3 lightFalloff[8];
 uniform int mipLevels;
 uniform vec4 material; // x - metallic, y - roughness, w - "rim" lighting
 uniform float exposure;
+uniform float diffuseIndirectAttenuate = 1;
+uniform float reflectIndirectAttenuate = 1;
 
 const float one_float = 1.0;
 
@@ -285,8 +287,8 @@ void main() {
     vec2 brdf = texture2D(iblbrdf, vec2(roughness, 1.0 - NdV)).xy;
     vec3 iblspec = min(vec3(0.99), fresnel_factor(specular, NdV) * brdf.x + brdf.y);
     
-    reflected_light +=  iblspec * envspec ;
-    diffuse_light +=  envdiff * (1.0 / PI) ;
+    reflected_light +=  iblspec * envspec * reflectIndirectAttenuate;
+    diffuse_light +=  envdiff * (1.0 / PI) * diffuseIndirectAttenuate ;
 
     // final result
     vec3 result =  diffuse_light * mix(base, vec3(0.0), metallic) +
