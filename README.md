@@ -2,7 +2,7 @@
 
 A Processing library providing physically based rendering and materials. Created by [Nacho Cossio](http://nachocossio.com) based on [a shader by Nick Galko](https://gist.github.com/galek/53557375251e1a942dfa)
 
-WARNING!: At the moment it has been tested on Windows and Linux with nVidia graphics. The shader fails to compile on Intel integrated graphics and osX. It is available in the 'src/data/shaders/pbr' folder if you want to try to fix it.
+WARNING!: At the moment it has been tested on Windows and Linux with nVidia graphics. The shader fails to compile on Intel integrated graphics and osX, probably related to [this Processing issue](https://github.com/processing/processing/issues/5507) . It is available in the 'src/data/shaders/pbr' folder if you want to try to fix it.
 
 [![video](linkToVimeo.png)](https://vimeo.com/315540699)
 
