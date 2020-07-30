@@ -3,18 +3,23 @@
 // GLSL shader by Nick Galko from https://gist.github.com/galek/53557375251e1a942dfa
 //Ported to Processing by Nacho Cossio (nachocossio.com, @nacho_cossio) 
 
+#define SAMPLERCUBESUPPORT
+
 uniform mat4 transformMatrix;
 uniform mat4 modelviewMatrix;
 uniform mat3 normalMatrix;
 uniform mat4 modelviewInv;
 
+#ifdef SAMPLERCUBESUPPORT
 uniform samplerCube envd;  // prefiltered env cubemap
-
+#else
+uniform sampler2D envd;
+#endif
  // These two texture are single channel, normally they are combined in one texture
  // I have kept it like this for making easier to get materials from different websites
 uniform sampler2D roughnessMap;    // roughness texture
 uniform sampler2D metalnessMap;    // metalness texture.
-                                   
+uniform sampler2D normalMap;    // normal map                    
                                     
 uniform sampler2D iblbrdf; // IBL BRDF normalization precalculated tex
 uniform sampler2D albedoTex;     // base texture (albedo)
@@ -24,11 +29,14 @@ uniform vec4 lightPosition[8];
 uniform vec3 lightNormal[8];
 uniform vec3 lightDiffuse[8];
 uniform vec3 lightFalloff[8];
+uniform vec3 lightAmbient[8];
 uniform int mipLevels;
 uniform vec4 material; // x - metallic, y - roughness, w - "rim" lighting
 uniform float exposure;
+uniform float gamma = 2.2;
 uniform float diffuseIndirectAttenuate = 1;
 uniform float reflectIndirectAttenuate = 1;
+uniform vec3 iblSH[9];
 
 const float one_float = 1.0;
 
@@ -47,6 +55,26 @@ out vec4 fragColor;
 #define USE_ALBEDO_MAP
 #define USE_ROUGHNESS_MAP
 #define USE_METALNESS_MAP
+
+//Taken from Filament https://github.com/google/filament/blob/main/shaders/src/light_indirect.fs
+//Have to invert Y axis
+vec3 Irradiance_SphericalHarmonics(const vec3 n) {
+    return max(
+          iblSH[0]
+// #if SPHERICAL_HARMONICS_BANDS >= 2
+        + iblSH[1] * (-n.y)
+        + iblSH[2] * (n.z)
+        + iblSH[3] * (n.x)
+// #endif
+// #if SPHERICAL_HARMONICS_BANDS >= 3
+        + iblSH[4] * (-n.y * n.x)
+        + iblSH[5] * (-n.y * n.z)
+        + iblSH[6] * (3.0 * n.z * n.z - 1.0)
+        + iblSH[7] * (n.z * n.x)
+        + iblSH[8] * (n.x * n.x - n.y * n.y)
+// #endif
+        , 0.0);
+}
 
 float falloffFactor(vec3 lightPos, vec3 vertPos, vec3 coeff) {
   vec3 lpv = lightPos - vertPos;
@@ -148,38 +176,47 @@ vec3 cooktorrance_specular(in float NdL, in float NdV, in float NdH, in vec3 spe
     return (1.0 / rim) * specular * G * D;
 }
 
+mat3 computeTangentFrame(vec3 normal, vec3 position, vec2 texCoord)
+{
+    vec3 dpx = dFdx(position);
+    vec3 dpy = dFdy(position);
+    vec2 dtx = dFdx(texCoord);
+    vec2 dty = dFdy(texCoord);
+    
+    vec3 tangent = normalize(dpy * dtx.t - dpx * dty.t);
+    vec3 binormal = cross(tangent, normal);
+   
+    return mat3(tangent, binormal, normal);
+}
                       
 void main() {
     // L, V, H vectors
-    // vec3 L = normalize(local_light_pos - FragIn.ecVertex);
     vec3 V = normalize(-FragIn.ecVertex);
-    // vec3 H = normalize(L + V);
     vec3 nn = normalize(FragIn.normal);
-
-    //TODO dont have binormal, need to compute it
-    // vec3 nb = normalize(v_binormal);
-    // mat3x3 tbn = mat3x3(nb, cross(nn, nb), nn);
-
     vec2 texcoord = FragIn.texCoord ;
+    //vec3 N = nn;
 
-    vec3 N = nn;
+    // tbn basis
+    vec3 unpacked = (texture(normalMap, texcoord).xyz * 2.0  - 1.0 );
+    vec3 N = computeTangentFrame(nn, FragIn.ecVertex, texcoord) * unpacked;
+    N = normalize(N);
 
     // albedo/specular base
  #ifdef USE_ALBEDO_MAP
-    vec3 base = texture2D(albedoTex, texcoord).xyz * FragIn.color.xyz;
+    vec3 base = texture(albedoTex, texcoord).xyz * FragIn.color.xyz;
  #else
     vec3 base = FragIn.color.xyz;
  #endif
 
     // roughness
  #ifdef USE_ROUGHNESS_MAP
-    float roughness = texture2D(roughnessMap, texcoord).y * material.y;
+    float roughness = texture(roughnessMap, texcoord).y * material.y;
  #else
     float roughness = material.y;
  #endif
 
 #ifdef USE_METALNESS_MAP
-    float metallic = texture2D(metalnessMap, texcoord).y * material.x;
+    float metallic = texture(metalnessMap, texcoord).y * material.x;
 #else
     float metallic = material.x;
 #endif
@@ -195,7 +232,12 @@ void main() {
     mat3x3 tnrm = transpose(normalMatrix);
     vec3 refl = tnrm * N;
     // refl = ( vec4(refl,1) * modelviewInv).xyz;
+    #ifdef SAMPLERCUBESUPPORT
     vec3 envdiff = textureLod(envd, -refl, mipLevels).xyz;
+    #else
+    vec3 envdiff = Irradiance_SphericalHarmonics(refl);
+    #endif
+
 
     // specular IBL term
     //    11 magic number is total MIP levels in cubemap, this is simplest way for picking
@@ -204,8 +246,18 @@ void main() {
     // refl = ( vec4(refl,1) * modelviewInv).xyz;
     // float mipLevel = roughness * 10.0 - pow(roughness, 6.0) * 1.5;
     float mipLevel = sqrt( roughness ) * (mipLevels - 1.0);
+    #ifdef SAMPLERCUBESUPPORT
     vec3 envspec = textureLod( envd, -refl, mipLevel).xyz;
     // vec3 envspec = textureLod(envd, tnrm * N, 6).xyz;
+    #else
+	// vec2 tc = vec2(atan(refl.z, refl.x) + PI, acos(-refl.y)) / vec2(2.0 * PI, PI);
+	// vec3 envspec = textureLod( envd, tc, mipLevel).xyz;
+	float RECIPROCAL_PI2 = 0.15915494;
+    vec2 uv;
+	uv.x = atan( -refl.z, -refl.x ) * RECIPROCAL_PI2 + 0.5;
+	uv.y = refl.y * 0.5 + 0.5;
+	vec3 envspec = textureLod( envd, uv, mipLevel).xyz;
+    #endif
 
     vec3 reflected_light = vec3(0);
     vec3 diffuse_light = vec3(0); // initial value == constant ambient light
@@ -218,12 +270,10 @@ void main() {
     // loop though ligt count
     for (int i = 0; i < 8; i++) {
         if (lightCount == i) break;
-
-         bool isDir = lightPosition[i].w < one_float;
-
-         float A;
-         vec3 L;
-          // point light direction to point in view space
+        bool isDir = lightPosition[i].w < one_float;
+        float A;
+        vec3 L;
+        // point light direction to point in view space
         //vec3 local_light_pos = (modelviewMatrix * ( lightPosition[i])).xyz;
          vec3 local_light_pos = lightPosition[i].xyz; //It seems that processing send light positions in eye coordinates
 
@@ -234,13 +284,10 @@ void main() {
             A = falloffFactor(local_light_pos, FragIn.ecVertex, lightFalloff[i]);  
             L = normalize(local_light_pos - FragIn.ecVertex);
         }
-       
-    
-       
+             
         vec3 H = normalize(L + V);
 
         // compute material reflectance
-
         NdL = max(0.0, dot(N, L));
         // float NdV = max(0.001, dot(N, V));  //equal for all lights
         NdH = max(0.001, dot(N, H));
@@ -249,8 +296,6 @@ void main() {
 
         // fresnel term is common for any, except phong
         // so it will be calcuated inside ifdefs
-
-
     #ifdef PHONG
         // specular reflectance with PHONG
         vec3 specfresnel = fresnel_factor(specular, NdV);
@@ -270,13 +315,9 @@ void main() {
     #endif
 
         specref *= vec3(NdL);
-
         // diffuse is common for any model
-        vec3 diffref = (vec3(1.0) - specfresnel) * phong_diffuse() * NdL;
-
-        
+        vec3 diffref = (vec3(1.0) - specfresnel) * phong_diffuse() * NdL;     
         // compute lighting       
-
         // point light
         vec3 light_color = lightDiffuse[i] * A;
         reflected_light += specref * light_color;
@@ -284,16 +325,16 @@ void main() {
     }
 
     // IBL lighting
-    vec2 brdf = texture2D(iblbrdf, vec2(roughness, 1.0 - NdV)).xy;
+    vec2 brdf = texture(iblbrdf, vec2(roughness, 1.0 - NdV)).xy;
     vec3 iblspec = min(vec3(0.99), fresnel_factor(specular, NdV) * brdf.x + brdf.y);
     
     reflected_light +=  iblspec * envspec * reflectIndirectAttenuate;
-    diffuse_light +=  envdiff * (1.0 / PI) * diffuseIndirectAttenuate ;
+    diffuse_light +=  envdiff * (1.0 / PI) * diffuseIndirectAttenuate ;  
 
     // final result
     vec3 result =  diffuse_light * mix(base, vec3(0.0), metallic) +
          reflected_light ;
 
-    result = pow(result,vec3(1.0/2.2)); // gamma correction
-    fragColor = vec4(result * exposure, 1);
+    result = pow(result * exposure,vec3(1.0/gamma)); // gamma correction
+    fragColor = vec4(result , 1.0);
 }

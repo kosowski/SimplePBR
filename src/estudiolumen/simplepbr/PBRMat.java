@@ -5,30 +5,30 @@ import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.opengl.PShader;
 
-
-
 public class PBRMat {
 	PShader shader;
-	PImage albedoTex, metallicTex, roughnessTex;
+	PImage albedoTex, metallicTex, roughnessTex, normalTex;
 	float metallic;
 	float roughness;
 	float rim;
 		
 	public PBRMat(){
-		metallic = 0;
+		metallic = 1;
 		roughness = 1;
-		rim = 0f;
+		rim = 1f;
 		shader = SimplePBR.getPbrShader();
 		albedoTex = SimplePBR.getWhiteTexture();
 		metallicTex = SimplePBR.getWhiteTexture();
 		roughnessTex = SimplePBR.getWhiteTexture();
+		normalTex = SimplePBR.getFlatNormalTexture();
 	}
 	
 	public PBRMat( String path){
-		this();
-		albedoTex = SimplePBR.getPapplet().loadImage(path+"albedo.png");
-		metallicTex = SimplePBR.getPapplet().loadImage(path+"metalness.png");
-		roughnessTex = SimplePBR.getPapplet().loadImage(path+"roughness.png");
+		this();	
+		PImage img = SimplePBR.getPapplet().loadImage(path+"albedo.png"); if(img != null)	albedoTex = img;
+		PImage m = SimplePBR.getPapplet().loadImage(path+"metalness.png"); if(m != null) metallicTex = m;
+		PImage r  = SimplePBR.getPapplet().loadImage(path+"roughness.png"); if(r!= null) roughnessTex = r;
+		PImage n = SimplePBR.getPapplet().loadImage(path+"normal.png"); if(n != null) normalTex = n;
 	}
 	
 	public PBRMat(PBRMat copy){
@@ -40,6 +40,7 @@ public class PBRMat {
 		albedoTex = copy.albedoTex;
 		metallicTex = copy.metallicTex;
 		roughnessTex = copy.roughnessTex;
+		normalTex = copy.roughnessTex;
 	}
 	
 	public void bind(){
@@ -51,6 +52,7 @@ public class PBRMat {
 		shader.set("roughnessMap", roughnessTex);
 		shader.set("metalnessMap", metallicTex);
 		shader.set("albedoTex", albedoTex);	
+		shader.set("normalMap", normalTex);
 		shader.set("material", metallic, roughness,0f, rim);
 		pg.shader(shader);
 	}
