@@ -1,0 +1,46 @@
+[Header]
+ICOfile = "Zion_7_Sunsetpeek_3k_Thumb.jpg"
+PREVIEWfile = "Zion_7_Sunsetpeek_preview.jpg"
+Name = "Zion Sunsetpeek"
+Author = "Blochi"
+Location = "California"
+Comment = "nature, day, evening, rocks, national park, yellow"
+GEOlat = 37.27200379457322
+GEOlong = -112.9423713684082
+Link = "http://www.hdrlabs.com/sibl/archive.html"
+Date = "2007:11:23"
+Time = "17:50:00"
+Height = 1.60
+North = 0.76
+
+[Background]
+BGfile = "Zion_7_Sunsetpeek_8k_Bg.jpg"
+BGmap = 1
+BGu = 0.000000
+BGv = 0.000000
+BGheight = 4000
+
+[Enviroment]
+EVfile = "Zion_7_Sunsetpeek_Env.hdr"
+EVmap = 1
+EVu = 0.000000
+EVv = 0.000000
+EVheight = 180
+EVmulti = 1.000000
+EVgamma = 1.600000
+
+[Reflection]
+REFfile = "Zion_7_Sunsetpeek_Ref.hdr"
+REFmap = 1
+REFu = 0.000000
+REFv = 0.000000
+REFheight = 800
+REFmulti = 1.000000
+REFgamma = 1.600000
+
+[Sun]
+SUNcolor = 255,219,161
+SUNmulti = 1.000000
+SUNu = 0.498000
+SUNv = 0.356000
+

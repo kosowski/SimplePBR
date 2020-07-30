@@ -11,7 +11,7 @@ import estudiolumen.simplepbr.*;
 PBRMat mat;
 
 public void setup() {
-	size(1080, 1080, P3D);
+	size(800, 800, P3D);
 	sphereDetail(20);
 
 	// Path to common data folder
@@ -19,7 +19,7 @@ public void setup() {
 
 	// Init SimplePBR providing path to folder with cubemap, radiance and irrandiance textures
 	SimplePBR.init(this, path + "cubemap/Zion_Sunsetpeek"); // init PBR setting processed cubemap
-	SimplePBR.setExposure(1.6f); // simple exposure control
+	SimplePBR.setExposure(2.6f); // simple exposure control
 
 	// Create PBR material from a set of textures
 	mat = new PBRMat(path + "material/Metal_Rusted_006/");
@@ -36,7 +36,7 @@ public void draw() {
 	// Additive blend to lighten the background, not really needed
 	background(40);
 	blendMode(ADD);
-	SimplePBR.drawCubemap(g, 8000); 
+	SimplePBR.drawCubemap(g, 800); 
 	blendMode(BLEND);
 	popMatrix();
 
