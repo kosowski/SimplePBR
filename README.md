@@ -5,9 +5,9 @@ A Processing library for physically based rendering and materials. Created by [N
 [![video](linkToVimeo.png)](https://vimeo.com/315540699)
 
 ### Installing
-Download the latest [release from here](https://github.com/kosowski/SimplePBR/releases/download/v0.2/SimplePBR.zip) and unzip the 'SimplePBR' folder into your Processing 'libraries' folder.
+Download the latest [release from here](https://github.com/kosowski/SimplePBR/releases/latest/) and unzip the 'SimplePBR' folder into your Processing 'libraries' folder. Done, you can now run any of the provided examples.
 
-### Getting Started
+### About
 Physically Based Rendering (PBR) is a method of shading and rendering that provides a more accurate representation of how light interacts with surfaces. A nice introduction on what PBR is and the different lighting terms involved can be found in these article series by the jMonkey Engine team:
 https://wiki.jmonkeyengine.org/jme3/advanced/pbr_part1.html
 
